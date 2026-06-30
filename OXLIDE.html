@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>OXLiDE Training App Prototype</title>
+  <style>
+    :root{
+      --bg:#000;
+      --card:#0B0B0D;
+      --card2:#111114;
+      --line:#222226;
+      --white:#fff;
+      --muted:#a3a3a3;
+      --muted2:#6f6f76;
+      --red:#F00012;
+      --red2:#B8000B;
+      --radius:22px;
+      --radius2:16px;
+      --shadow:0 22px 70px rgba(0,0,0,.55);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;height:100%;background:#060606;color:var(--white);font-family:Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "Noto Sans TC", sans-serif;}
+    body{
+      display:flex;align-items:center;justify-content:center;
+      background:
+        radial-gradient(circle at 50% -10%, rgba(240,0,18,.20), transparent 38%),
+        linear-gradient(180deg,#101010,#000);
+      overflow:hidden;
+    }
+
+    .phone{
+      width:min(430px,100vw);
+      height:min(932px,100vh);
+      background:#000;
+      position:relative;
+      overflow:hidden;
+      box-shadow:0 0 0 1px rgba(255,255,255,.10), 0 30px 90px rgba(0,0,0,.8);
+    }
+
+    @media (min-width:540px){
+      .phone{border-radius:42px; height:900px; margin:20px 0;}
+      .phone:before{content:"";position:absolute;left:0;right:0;top:0;height:34px;background:rgba(255,255,255,.02);z-index:50;border-radius:42px 42px 0 0}
+    }
+
+    .statusbar{
+      height:36px;
+      display:flex;align-items:flex-end;justify-content:space-between;
+      padding:0 22px 8px;
+      font-size:12px;font-weight:800;color:#fff;
+      position:relative;z-index:40;
+    }
+
+    .app{
+      height:calc(100% - 36px);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .screen{
+      display:none;
+      position:absolute; inset:0;
+      overflow-y:auto;
+      padding:18px 18px calc(88px + var(--safe-bottom));
+      background:
+        radial-gradient(circle at 70% 0%, rgba(240,0,18,.12), transparent 28%),
+        #000;
+      scrollbar-width:none;
+    }
+    .screen::-webkit-scrollbar{display:none}
+    .screen.active{display:block;animation:fade .18s ease-out}
+    @keyframes fade{from{opacity:.55; transform:translateY(4px)}to{opacity:1;transform:none}}
+
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;
+      min-height:42px;margin-bottom:14px;
+      position:sticky;top:0;z-index:30;
+      background:linear-gradient(180deg,#000 72%,rgba(0,0,0,0));
+      padding-bottom:8px;
+    }
+    .brand{
+      font-size:21px;letter-spacing:-1px;font-weight:950;color:var(--red);
+      line-height:1;
+    }
+    .brand small{display:block;color:white;font-size:9px;letter-spacing:4px;margin-top:5px;font-weight:800}
+    .iconbtn{
+      width:38px;height:38px;border:1px solid rgba(255,255,255,.16);border-radius:50%;
+      display:grid;place-items:center;background:rgba(255,255,255,.02);color:#fff;font-size:20px;
+      cursor:pointer;
+    }
+    .back{font-size:26px}
+
+    .bottomnav{
+      position:absolute;left:14px;right:14px;bottom:calc(12px + var(--safe-bottom));
+      height:70px;background:rgba(12,12,14,.94);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:24px;
+      display:grid;grid-template-columns:repeat(3,1fr);
+      z-index:60;
+      backdrop-filter:blur(18px);
+    }
+    .nav{
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+      color:#83838a;font-size:10px;font-weight:800;letter-spacing:.2px;cursor:pointer;
+    }
+    .nav svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8}
+    .nav.active{color:#fff}
+    .nav.active span{color:var(--red)}
+    .nav.active svg{stroke:var(--red)}
+    .nav.active:after{content:"";width:4px;height:4px;border-radius:50%;background:var(--red);box-shadow:0 0 14px var(--red)}
+
+    .splash{
+      display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;
+      padding:40px;position:relative;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(240,0,18,.16), transparent 30%),
+        #000;
+    }
+    .splash:before{
+      content:"";position:absolute;left:0;bottom:24%;height:2px;width:100%;
+      background:linear-gradient(90deg,transparent,var(--red),transparent);
+      box-shadow:0 0 22px var(--red);
+    }
+    .splash .mark{
+      width:190px;height:96px;border-radius:28px;
+      background:
+        linear-gradient(135deg,rgba(255,255,255,.03),rgba(255,255,255,0)),
+        #050505;
+      border:1px solid rgba(255,255,255,.06);
+      display:grid;place-items:center;
+      box-shadow:inset 0 0 90px rgba(255,255,255,.03);
+    }
+    .splash h1{margin:28px 0 0;color:var(--red);font-size:42px;line-height:.85;letter-spacing:-2px;font-weight:1000}
+    .splash p{margin:14px 0 0;font-size:13px;letter-spacing:8px;font-weight:800}
+    .splash .loading{position:absolute;bottom:72px;color:#777;font-size:11px;letter-spacing:1.8px}
+
+    .hero{
+      min-height:360px;border-radius:30px;overflow:hidden;position:relative;padding:22px;
+      background:
+        linear-gradient(180deg,rgba(0,0,0,.18),rgba(0,0,0,.86)),
+        radial-gradient(circle at 78% 28%, rgba(240,0,18,.22), transparent 27%),
+        linear-gradient(135deg,#1b1b1f,#070707);
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:var(--shadow);
+    }
+    .hero:after{
+      content:"";position:absolute;right:-32px;top:55px;width:220px;height:220px;opacity:.18;
+      background:repeating-linear-gradient(135deg, rgba(255,255,255,.08) 0 2px, transparent 2px 11px);
+      clip-path:polygon(25% 0,75% 0,100% 25%,100% 75%,75% 100%,25% 100%,0 75%,0 25%);
+    }
+    .hero .athlete{
+      position:absolute;right:-22px;bottom:0;width:230px;height:210px;opacity:.88;
+      background:
+        radial-gradient(ellipse at 55% 75%, rgba(240,0,18,.45), transparent 36%),
+        linear-gradient(145deg,transparent 43%,rgba(255,255,255,.10) 44%,transparent 46%),
+        radial-gradient(circle at 42% 34%, rgba(255,255,255,.35), transparent 7%),
+        linear-gradient(90deg, transparent 0 24%, rgba(255,255,255,.16) 25% 29%, transparent 30%),
+        linear-gradient(160deg, transparent 0 42%, rgba(255,255,255,.18) 43% 47%, transparent 48%);
+      filter:contrast(1.3);
+      border-bottom-right-radius:30px;
+    }
+    .hero h2{
+      margin:62px 0 12px;max-width:250px;
+      font-size:31px;line-height:1.02;letter-spacing:-.8px;font-weight:1000;font-style:italic;
+    }
+    .hero p{max-width:250px;color:#cfcfcf;font-size:13px;line-height:1.65;margin:0}
+    .kicker{
+      display:flex;align-items:center;gap:8px;font-size:11px;font-weight:950;letter-spacing:1.1px;text-transform:uppercase;color:white;
+    }
+    .kicker:before{content:"";width:4px;height:20px;background:var(--red);border-radius:4px}
+
+    .section{margin-top:24px}
+    .sectionhead{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:12px}
+    .sectionhead h3{margin:0;font-size:15px;letter-spacing:.5px;text-transform:uppercase}
+    .sectionhead small{color:var(--muted2);font-weight:800;font-size:10px;letter-spacing:.8px}
+    .bodycopy{color:#bdbdc4;font-size:13px;line-height:1.8;margin:10px 0 0}
+
+    .indicator-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+    }
+    .indicator{
+      min-height:74px;border-radius:15px;background:var(--card);
+      border:1px solid rgba(255,255,255,.10);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+      text-align:center;padding:8px 4px;
+    }
+    .indicator .ico{
+      width:28px;height:28px;border-radius:9px;border:1px solid rgba(255,255,255,.18);
+      display:grid;place-items:center;color:#fff;font-size:14px;
+    }
+    .indicator b{font-size:9px;line-height:1.1;color:#fff}
+    .indicator span{font-size:8px;color:#8d8d92;line-height:1}
+
+    .btn{
+      width:100%;height:56px;border-radius:16px;border:0;font-size:13px;font-weight:1000;letter-spacing:.8px;color:#fff;
+      display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+    }
+    .btn.red{background:linear-gradient(90deg,var(--red),var(--red2));box-shadow:0 12px 26px rgba(240,0,18,.24)}
+    .btn.dark{background:#08080a;border:1px solid rgba(255,255,255,.20)}
+    .action-grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:22px}
+
+    .level-card{
+      min-height:178px;border-radius:22px;background:
+        radial-gradient(circle at 88% 30%, rgba(255,255,255,.14), transparent 24%),
+        linear-gradient(135deg,#161619,#08080a);
+      border:1px solid rgba(255,255,255,.13);
+      padding:18px;position:relative;overflow:hidden;margin-bottom:14px;cursor:pointer;
+    }
+    .level-card:after{
+      content:"";position:absolute;right:-28px;bottom:-22px;width:170px;height:120px;
+      background:linear-gradient(140deg,transparent 45%,rgba(240,0,18,.42) 45% 48%,transparent 48%),
+                 radial-gradient(ellipse at 35% 30%, rgba(255,255,255,.18), transparent 32%);
+      opacity:.9;
+    }
+    .badge{
+      width:46px;height:34px;background:var(--red);clip-path:polygon(18% 0,82% 0,100% 50%,82% 100%,18% 100%,0 50%);
+      display:grid;place-items:center;font-weight:1000;font-size:13px;margin-bottom:20px;
+    }
+    .level-card h3{font-size:27px;line-height:1.02;margin:0;text-transform:uppercase;font-style:italic}
+    .level-card .zh{color:var(--red);font-weight:950;font-size:13px;margin-top:6px}
+    .level-card p{color:#fff;font-size:12px;font-weight:850;letter-spacing:.8px;margin-top:18px}
+
+    .list-card{
+      border-radius:18px;background:var(--card);
+      border:1px solid rgba(255,255,255,.10);
+      min-height:112px;margin-bottom:12px;display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer;
+    }
+    .thumb{
+      width:98px;height:78px;border-radius:14px;background:
+        radial-gradient(circle at 50% 38%, rgba(255,255,255,.20), transparent 18%),
+        linear-gradient(135deg,#25252a,#09090a);
+      border:1px solid rgba(255,255,255,.07);
+      display:grid;place-items:center;flex:0 0 auto;position:relative;overflow:hidden;
+    }
+    .thumb:after{content:"";position:absolute;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.35)}
+    .thumb .tri{width:0;height:0;border-left:12px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent;z-index:2;margin-left:4px}
+    .list-card h3{font-size:16px;margin:0 0 5px;line-height:1.15}
+    .list-card p{margin:0;color:var(--muted);font-size:11px;line-height:1.45}
+    .chev{margin-left:auto;color:#fff;font-size:26px;opacity:.75}
+
+    .page-title{
+      margin:8px 0 18px;text-align:center;
+    }
+    .page-title h2{font-size:20px;margin:0;text-transform:uppercase;letter-spacing:.5px}
+    .page-title p{font-size:12px;color:#c9c9ce;margin:6px 0 0;font-weight:700}
+    .left-title{text-align:left}
+    .left-title h2{font-size:25px;line-height:1.04;letter-spacing:-.4px}
+    .left-title p{line-height:1.6}
+
+    .player{
+      height:236px;border-radius:22px;background:
+        radial-gradient(circle at 50% 45%, rgba(240,0,18,.18), transparent 28%),
+        linear-gradient(135deg,#1d1d20,#08080a);
+      border:1px solid rgba(255,255,255,.12);
+      overflow:hidden;display:grid;place-items:center;margin-bottom:18px;position:relative;
+    }
+    .player:before{content:"";position:absolute;left:18px;right:18px;bottom:18px;height:4px;border-radius:6px;background:rgba(255,255,255,.18)}
+    .player:after{content:"15:00";position:absolute;right:18px;bottom:30px;font-size:10px;color:#ddd;font-weight:800}
+    .playbig{
+      width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:rgba(240,0,18,.88);box-shadow:0 0 34px rgba(240,0,18,.4);
+    }
+    .playbig div{width:0;height:0;border-left:20px solid #fff;border-top:13px solid transparent;border-bottom:13px solid transparent;margin-left:6px}
+
+    .info{
+      border-radius:18px;border:1px solid rgba(255,255,255,.10);background:#09090b;padding:16px;margin-top:12px;
+    }
+    .info h4{font-size:12px;letter-spacing:.8px;margin:0 0 10px;text-transform:uppercase;border-left:4px solid var(--red);padding-left:9px}
+    .info p,.info li{color:#c9c9ce;font-size:12px;line-height:1.65;margin:0}
+    .info ul{margin:0;padding-left:18px}
+    .info li::marker{color:var(--red)}
+
+    .cat-card{
+      height:82px;border-radius:16px;background:
+        linear-gradient(90deg,rgba(240,0,18,.13),transparent 42%),
+        var(--card);
+      border:1px solid rgba(255,255,255,.10);
+      display:flex;align-items:center;gap:12px;padding:10px 12px;margin-bottom:10px;cursor:pointer;
+    }
+    .cat-num{
+      width:40px;height:40px;border-radius:11px;background:var(--red);display:grid;place-items:center;font-weight:1000;
+    }
+    .cat-card h3{font-size:15px;margin:0}
+    .cat-card p{font-size:11px;color:var(--muted);margin:5px 0 0}
+
+    .product-row{
+      min-height:76px;border-radius:15px;background:var(--card);
+      border:1px solid rgba(255,255,255,.10);
+      display:flex;align-items:center;gap:12px;padding:10px;margin-bottom:10px;cursor:pointer;
+    }
+    .product-thumb{
+      width:64px;height:48px;border-radius:10px;background:linear-gradient(135deg,#2a2a2f,#111);
+      border:1px solid rgba(255,255,255,.08);flex:0 0 auto;display:grid;place-items:center;overflow:hidden;
+    }
+    .octa{
+      width:40px;height:40px;background:#151515;clip-path:polygon(30% 0,70% 0,100% 30%,100% 70%,70% 100%,30% 100%,0 70%,0 30%);position:relative;
+    }
+    .octa:after{content:"";position:absolute;inset:11px;background:var(--red);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+    .longmat{width:54px;height:20px;background:linear-gradient(90deg,#0e0e10 0 18%,#29292d 18% 82%,#0e0e10 82%);border-radius:7px}
+    .roller{width:20px;height:42px;border-radius:9px;background:repeating-linear-gradient(0deg,#1e1e22 0 5px,#0e0e10 5px 10px)}
+    .block{width:50px;height:30px;border-radius:7px;background:#29292d}
+
+    .product-row h3{font-size:13px;margin:0}
+    .product-row p{font-size:10px;color:var(--muted);margin:5px 0 0}
+    .tag{
+      display:inline-flex;border:1px solid rgba(240,0,18,.9);color:#fff;background:rgba(240,0,18,.12);
+      border-radius:7px;padding:5px 8px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;
+    }
+
+    .product-hero{
+      height:300px;border-radius:28px;background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,.14), transparent 34%),
+        linear-gradient(180deg,#17171a,#050506);
+      border:1px solid rgba(255,255,255,.10);display:grid;place-items:center;position:relative;overflow:hidden;margin-bottom:18px;
+    }
+    .product-hero .octa{width:210px;height:210px}
+    .product-hero .octa:after{inset:54px}
+    .product-dots{position:absolute;bottom:16px;display:flex;gap:7px}
+    .product-dots span{width:7px;height:7px;border-radius:50%;background:#555}
+    .product-dots span:first-child{background:var(--red)}
+
+    .menu-overlay{
+      display:none;position:absolute;inset:0;background:rgba(0,0,0,.56);z-index:90;backdrop-filter:blur(7px);
+    }
+    .menu-overlay.active{display:block}
+    .menu{
+      position:absolute;right:0;top:0;bottom:0;width:82%;background:#08080a;border-left:1px solid rgba(255,255,255,.12);
+      padding:34px 24px;box-shadow:-30px 0 80px rgba(0,0,0,.55);
+      animation:slide .22s ease-out;
+    }
+    @keyframes slide{from{transform:translateX(100%)}to{transform:none}}
+    .menu .close{position:absolute;right:18px;top:18px}
+    .menu .brand{margin:18px 0 36px}
+    .menu-item{
+      display:flex;align-items:center;gap:16px;border-bottom:1px solid rgba(255,255,255,.12);
+      padding:18px 0;color:white;font-weight:850;font-size:15px;
+    }
+    .menu-ico{
+      width:34px;height:34px;border-radius:11px;border:1px solid rgba(255,255,255,.18);display:grid;place-items:center;color:#fff;
+    }
+
+    .note{
+      margin-top:20px;color:#74747b;font-size:10px;line-height:1.5;text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="phone">
+    <div class="statusbar">
+      <span>9:41</span>
+      <span>● ● ●</span>
+    </div>
+
+    <div class="app">
+      <section id="splash" class="screen active" style="padding:0">
+        <div class="splash">
+          <div class="mark"></div>
+          <h1>OXLiDE</h1>
+          <p>TRAINING</p>
+          <div class="loading">LOADING · 3 SEC</div>
+        </div>
+      </section>
+
+      <section id="home" class="screen">
+        <div class="topbar">
+          <div class="brand">OXLiDE</div>
+          <button class="iconbtn" onclick="openMenu()">≡</button>
+        </div>
+
+        <div class="hero">
+          <div class="kicker">Training Guide</div>
+          <h2>CONTROL.<br>STABILITY.<br>FLOW.</h2>
+          <p>掌控身體、穩定核心、流動表現。為 OXLiDE 商品打造的專屬訓練應用。</p>
+          <div class="athlete"></div>
+        </div>
+
+        <div class="section">
+          <div class="sectionhead">
+            <h3>Training Applications</h3>
+            <small>訓練應用</small>
+          </div>
+          <p class="bodycopy">搭配滑行墊、核心墊、瑜伽流動與恢復工具，建立穩定、低干擾、可持續的日常訓練節奏。</p>
+        </div>
+
+        <div class="section">
+          <div class="sectionhead">
+            <h3>8 Movement Index</h3>
+            <small>八大運動指標</small>
+          </div>
+          <div class="indicator-grid">
+            <div class="indicator"><div class="ico">◎</div><b>CORE</b><span>核心穩定</span></div>
+            <div class="indicator"><div class="ico">↔</div><b>GLIDE</b><span>滑行控制</span></div>
+            <div class="indicator"><div class="ico">▰</div><b>LOWER</b><span>下肢肌力</span></div>
+            <div class="indicator"><div class="ico">✚</div><b>BALANCE</b><span>平衡協調</span></div>
+            <div class="indicator"><div class="ico">⟳</div><b>MOBILITY</b><span>活動度</span></div>
+            <div class="indicator"><div class="ico">⌁</div><b>FLEX</b><span>柔軟伸展</span></div>
+            <div class="indicator"><div class="ico">△</div><b>FUNCTION</b><span>功能訓練</span></div>
+            <div class="indicator"><div class="ico">◌</div><b>RECOVERY</b><span>恢復放鬆</span></div>
+          </div>
+        </div>
+
+        <div class="action-grid">
+          <button class="btn red" onclick="showScreen('training')">START TRAINING　開始訓練</button>
+          <button class="btn dark" onclick="showScreen('products')">VIEW PRODUCTS　瀏覽商品</button>
+        </div>
+
+        <p class="note">內容可由資料庫或 Google Sheet 管理，未來新增影片 / 商品不需改版 APP。</p>
+      </section>
+
+      <section id="training" class="screen">
+        <div class="topbar">
+          <button class="iconbtn back" onclick="showScreen('home')">‹</button>
+          <div class="brand">OXLiDE<small>TRAINING</small></div>
+          <button class="iconbtn" onclick="openMenu()">≡</button>
+        </div>
+
+        <div class="page-title">
+          <h2>Training Level</h2>
+          <p>訓練等級</p>
+        </div>
+
+        <div class="level-card" onclick="openLevel('beginner')">
+          <div class="badge">01</div>
+          <h3>Beginner<br>Training</h3>
+          <div class="zh">初階訓練</div>
+          <p>3 WORKOUTS</p>
+        </div>
+
+        <div class="level-card" onclick="openLevel('intermediate')">
+          <div class="badge">02</div>
+          <h3>Intermediate<br>Training</h3>
+          <div class="zh">中階訓練</div>
+          <p>3 WORKOUTS</p>
+        </div>
+
+        <div class="level-card" onclick="openLevel('advanced')">
+          <div class="badge">03</div>
+          <h3>Advanced<br>Training</h3>
+          <div class="zh">進階訓練</div>
+          <p>3 WORKOUTS</p>
+        </div>
+      </section>
+
+      <section id="videoList" class="screen">
+        <div class="topbar">
+          <button class="iconbtn back" onclick="showScreen('training')">‹</button>
+          <div class="brand">OXLiDE<small>TRAINING</small></div>
+          <button class="iconbtn" onclick="openMenu()">≡</button>
+        </div>
+
+        <div class="page-title left-title">
+          <h2 id="levelTitle">Beginner Training</h2>
+          <p id="levelSubtitle">初階訓練 · 3 Workouts</p>
+        </div>
+
+        <div id="workoutList"></div>
+      </section>
+
+      <section id="videoPlayer" class="screen">
+        <div class="topbar">
+          <button class="iconbtn back" onclick="showScreen('videoList')">‹</button>
+          <div class="brand">OXLiDE<small>TRAINING</small></div>
+          <button class="iconbtn" onclick="openMenu()">≡</button>
+        </div>
+
+        <div class="page-title">
+          <h2 id="playerTitle">初階訓練_01</h2>
+          <p id="playerSub">Beginner Training 01</p>
+        </div>
+
+        <div class="player" id="youtubeBox">
+          <div class="playbig"><div></div></div>
+        </div>
+
+        <div class="info">
+          <h4>Video Playback　影片播放</h4>
+          <p>APP 內嵌 YouTube 播放，不主動跳轉外部 YouTube 連結。</p>
+        </div>
+
+        <div class="info">
+          <h4>Training Intro　訓練簡介</h4>
+          <p id="introText">適合第一次使用 OXLiDE 的使用者，建立基礎滑行控制、核心穩定與身體協調。</p>
+        </div>
+
+        <div class="info">
+          <h4>Training Focus　訓練重點</h4>
+          <ul>
+            <li>Core Stability｜核心穩定</li>
+            <li>Body Alignment｜身體對位</li>
+            <li>Breath Control｜呼吸控制</li>
+          </ul>
+        </div>
+
+        <div class="info">
+          <h4>Safety Note　安全提醒</h4>
+          <p>請於平整、乾淨的地面使用。如感到不適，請立即停止。</p>
+        </div>
+        <button class="btn red" style="margin-top:16px" onclick="playNext()">NEXT WORKOUT　下一個訓練</button>
+      </section>
+
+      <section id="products" class="screen">
+        <div class="topbar">
+          <button class="iconbtn back" onclick="showScreen('home')">‹</button>
+          <div class="brand">OXLiDE<small>PRODUCTS</small></div>
+          <button class="iconbtn" onclick="openMenu()">≡</button>
+        </div>
+
+        <div class="page-title">
+          <h2>Product Categories</h2>
+          <p>商品分類</p>
+        </div>
+
+        <div id="categoryList"></div>
+      </section>
+
+      <section id="productList" class="screen">
+        <div class="topbar">
+          <button class="iconbtn back" onclick="showScreen('products')">‹</button>
+          <div class="brand">OXLiDE<small>PRODUCTS</small></div>
+          <button class="iconbtn" onclick="openMenu()">≡</button>
+        </div>
+
+        <div class="page-title left-title">
+          <h2 id="categoryTitle">01. Glide Training</h2>
+          <p id="categorySub">商品列表</p>
+        </div>
+
+        <div id="productRows"></div>
+      </section>
+
+      <section id="productDetail" class="screen">
+        <div class="topbar">
+          <button class="iconbtn back" onclick="showScreen('productList')">‹</button>
+          <div class="brand">OXLiDE<small>PRODUCT</small></div>
+          <button class="iconbtn" onclick="openMenu()">≡</button>
+        </div>
+
+        <div class="product-hero" id="productHero">
+          <div class="octa"></div>
+          <div class="product-dots"><span></span><span></span><span></span></div>
+        </div>
+
+        <span class="tag" id="productTag">GLIDE TRAINING</span>
+        <div class="page-title left-title">
+          <h2 id="productName">OXLiDE OctaGlide™ 130</h2>
+          <p id="productIntro">適合滑行控制、核心穩定、下肢肌力與身體活動度訓練。</p>
+        </div>
+
+        <div class="info">
+          <h4>Product Specs　產品規格</h4>
+          <p id="productSpecs">Size: 130 × 130 cm<br>Thickness: 1 mm / 3 mm / 5 mm</p>
+        </div>
+
+        <div class="info">
+          <h4>Training Use　訓練應用</h4>
+          <p id="productUse">核心穩定、滑行控制、下肢肌力、全身訓練。</p>
+        </div>
+
+        <button class="btn red" style="margin-top:16px" onclick="openShopSite()">VISIT OFFICIAL SHOP　前往官方購物網站</button>
+      </section>
+
+      <div class="menu-overlay" id="menuOverlay" onclick="closeMenu(event)">
+        <div class="menu" onclick="event.stopPropagation()">
+          <button class="iconbtn close" onclick="closeMenu()">×</button>
+          <div class="brand">OXLiDE<small>MENU</small></div>
+          <div class="menu-item" onclick="openOfficialSite()"><div class="menu-ico">1</div>進入官網</div>
+          <div class="menu-item" onclick="openShopSite()"><div class="menu-ico">2</div>進入購物網站</div>
+          <div class="menu-item" onclick="showScreen('home')"><div class="menu-ico">3</div>回到主頁</div>
+        </div>
+      </div>
+
+      <nav class="bottomnav">
+        <div class="nav active" id="nav-home" onclick="showScreen('home')">
+          <svg viewBox="0 0 24 24"><path d="M3 11.5L12 4l9 7.5v8a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+          <span>Home</span>
+        </div>
+        <div class="nav" id="nav-training" onclick="showScreen('training')">
+          <svg viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M9 8l6 4-6 4z"/></svg>
+          <span>Training</span>
+        </div>
+        <div class="nav" id="nav-products" onclick="showScreen('products')">
+          <svg viewBox="0 0 24 24"><path d="M6 7h12l1 14H5z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
+          <span>Products</span>
+        </div>
+      </nav>
+    </div>
+  </div>
+
+  <script>
+    const workouts = {
+      beginner: {
+        title: "Beginner Training",
+        subtitle: "初階訓練 · 3 Workouts",
+        zh: "初階訓練",
+        items: [
+          {id:"beginner_01", zh:"初階訓練_01", en:"Beginner Training 01", desc:"建立滑行控制與基礎核心穩定。", youtubeId:"Vdxj4xai-Io"},
+          {id:"beginner_02", zh:"初階訓練_02", en:"Beginner Training 02", desc:"提升身體對位與下肢穩定。", youtubeId:"pOzM99p0lMM"},
+          {id:"beginner_03", zh:"初階訓練_03", en:"Beginner Training 03", desc:"整合呼吸、節奏與基礎協調。", youtubeId:"VK3jhUcOeQ8"}
+        ]
+      },
+      intermediate: {
+        title: "Intermediate Training",
+        subtitle: "中階訓練 · 3 Workouts",
+        zh: "中階訓練",
+        items: [
+          {id:"intermediate_01", zh:"中階訓練_01", en:"Intermediate Training 01", desc:"強化核心穩定與下肢控制。", youtubeId:"pCbsYwd87Vk"},
+          {id:"intermediate_02", zh:"中階訓練_02", en:"Intermediate Training 02", desc:"提升動作連續性與穩定輸出。", youtubeId:"5t7aUuhdFa0"},
+          {id:"intermediate_03", zh:"中階訓練_03", en:"Intermediate Training 03", desc:"整合全身協調與肌力表現。", youtubeId:"mdV3PVuZSXQ"}
+        ]
+      },
+      advanced: {
+        title: "Advanced Training",
+        subtitle: "進階訓練 · 3 Workouts",
+        zh: "進階訓練",
+        items: [
+          {id:"advanced_01", zh:"進階訓練_01", en:"Advanced Training 01", desc:"高強度控制、速度與流動表現。", youtubeId:"i7x5APFXpl8"},
+          {id:"advanced_02", zh:"進階訓練_02", en:"Advanced Training 02", desc:"挑戰核心、平衡與爆發控制。", youtubeId:"EQuj3qqKmK8"},
+          {id:"advanced_03", zh:"進階訓練_03", en:"Advanced Training 03", desc:"完整訓練節奏與進階動作整合。", youtubeId:"CBPkTCuHb7Y"}
+        ]
+      }
+    };
+
+    const categories = [
+      {id:"glide", no:"01", name:"Glide Training", desc:"滑行控制 / 核心 / 下肢", products:[
+        ["OXLiDE OctaGlide™ 130","Size: 130 × 130 cm｜Thickness: 1 / 3 / 5 mm","octa"],
+        ["OXLiDE OctaGlide™ 110","Size: 110 × 110 cm｜Thickness: 1 / 3 / 5 mm","octa"],
+        ["OXLiDE OctaGlide™ 100","Size: 100 × 100 cm｜Thickness: 1 / 3 / 5 mm","octa"],
+        ["OXLiDE GlideTrack™ 180","Size: 180 × 61 cm｜Thickness: 1 / 3 / 5 mm","long"],
+        ["OXLiDE GlideTrack™ 130","Size: 130 × 61 cm｜Thickness: 1 / 3 / 5 mm","long"],
+        ["OXLiDE Hybrid™ 110","Size: 110 × 40 cm｜Thickness: 5 mm","long"],
+        ["OXLiDE Hybrid™ 90","Size: 90 × 40 cm｜Thickness: 5 mm","long"]
+      ]},
+      {id:"functional", no:"02", name:"Functional Training", desc:"功能訓練 / 肌力 / 穩定", products:[
+        ["OXLiDE PulsePad™","Size: 80 × 50 cm｜Thickness: 15 mm","block"],
+        ["CoreSupport™ Pad","Size: 54 × 40 cm｜Thickness: 35 mm","block"]
+      ]},
+      {id:"yoga", no:"03", name:"Yoga & Flow", desc:"瑜伽流動 / 活動度 / 伸展", products:[
+        ["OXLiDE Flow™ 180","Size: 180 × 61 cm｜Thickness: 5 mm","long"],
+        ["OXLiDE Flow™ Block","Size: 22.2 × 15.2 × 10 cm","block"],
+        ["OXLiDE DualCore™ Roller","Size: 51 × 10 - 13 cm","roller"]
+      ]},
+      {id:"pilates", no:"04", name:"Pilates & Core", desc:"核心穩定 / 皮拉提斯", products:[
+        ["OXLiDE CoreForm™ 180","Size: 180 × 61 cm｜Thickness: 5 mm","long"],
+        ["OXLiDE CoreForm™ Cushion","Size: 65 × 28 × 15 cm","block"],
+        ["OXLiDE Flow™ Block","Size: 22.2 × 15.2 × 10 cm","block"],
+        ["CoreSupport™ Pad","Size: 54 × 40 cm｜Thickness: 35 mm","block"]
+      ]},
+      {id:"recovery", no:"05", name:"Recovery", desc:"恢復 / 放鬆 / 筋膜釋放", products:[
+        ["OXLiDE DualCore™ Roller","Size: 51 × 10 - 13 cm","roller"]
+      ]},
+      {id:"accessories", no:"06", name:"Accessories", desc:"配件 / 輔助工具", products:[
+        ["OXLiDE DualCore™ Roller","Size: 51 × 10 - 13 cm","roller"],
+        ["OXLiDE CoreForm™ Cushion","Size: 65 × 28 × 15 cm","block"],
+        ["OXLiDE Flow™ Block","Size: 22.2 × 15.2 × 10 cm","block"],
+        ["CoreSupport™ Pad","Size: 54 × 40 cm｜Thickness: 35 mm","block"],
+        ["OXLiDE GlideSox™ - A","Training accessory","block"],
+        ["OXLiDE GlideSox™ - B","Training accessory","block"],
+        ["OXLiDE GlideSox™ - C","Training accessory","block"],
+        ["OXLiDE GlideSox™ - D","Training accessory","block"]
+      ]}
+    ];
+
+    let currentLevel = "beginner";
+    let currentVideoIndex = 0;
+    let currentCategory = categories[0];
+    let currentProduct = categories[0].products[0];
+
+    function showScreen(id){
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+
+      document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+      if(id === 'home') document.getElementById('nav-home').classList.add('active');
+      else if(['training','videoList','videoPlayer'].includes(id)) document.getElementById('nav-training').classList.add('active');
+      else if(['products','productList','productDetail'].includes(id)) document.getElementById('nav-products').classList.add('active');
+
+      document.getElementById(id).scrollTop = 0;
+      closeMenu();
+    }
+
+    function openLevel(level){
+      currentLevel = level;
+      const data = workouts[level];
+      document.getElementById('levelTitle').textContent = data.title;
+      document.getElementById('levelSubtitle').textContent = data.subtitle;
+      const list = document.getElementById('workoutList');
+      list.innerHTML = data.items.map((v,i)=>`
+        <div class="list-card" onclick="openVideo(${i})">
+          <div class="thumb"><div class="tri"></div></div>
+          <div>
+            <h3>${v.zh}</h3>
+            <p>${v.en}<br>${v.desc}</p>
+          </div>
+          <div class="chev">›</div>
+        </div>
+      `).join('');
+      showScreen('videoList');
+    }
+
+    function openVideo(index){
+      currentVideoIndex = index;
+      const v = workouts[currentLevel].items[index];
+      document.getElementById('playerTitle').textContent = v.zh;
+      document.getElementById('playerSub').textContent = v.en;
+      document.getElementById('introText').textContent = `${v.desc} 適合跟隨影片節奏完成 15 分鐘訓練，建立穩定、控制與流動表現。`;
+
+      const box = document.getElementById('youtubeBox');
+      if(v.youtubeId){
+        box.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${v.youtubeId}?rel=0&modestbranding=1&playsinline=1" title="${v.en}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+      }else{
+        box.innerHTML = `<div class="playbig"><div></div></div>`;
+      }
+      showScreen('videoPlayer');
+    }
+    function playNext(){
+      const items = workouts[currentLevel].items;
+      const next = (currentVideoIndex + 1) % items.length;
+      openVideo(next);
+    }
+
+    function renderCategories(){
+      document.getElementById('categoryList').innerHTML = categories.map((c,idx)=>`
+        <div class="cat-card" onclick="openCategory(${idx})">
+          <div class="cat-num">${c.no}</div>
+          <div><h3>${c.name}</h3><p>${c.desc}</p></div>
+          <div class="chev">›</div>
+        </div>
+      `).join('');
+    }
+
+    function openCategory(index){
+      currentCategory = categories[index];
+      document.getElementById('categoryTitle').textContent = `${currentCategory.no}. ${currentCategory.name}`;
+      document.getElementById('categorySub').textContent = currentCategory.desc;
+      document.getElementById('productRows').innerHTML = currentCategory.products.map((p,i)=>`
+        <div class="product-row" onclick="openProduct(${i})">
+          <div class="product-thumb">${thumb(p[2])}</div>
+          <div>
+            <h3>${p[0]}</h3>
+            <p>${p[1]}</p>
+          </div>
+          <div class="chev">›</div>
+        </div>
+      `).join('');
+      showScreen('productList');
+    }
+
+    function thumb(type){
+      if(type === "octa") return '<div class="octa"></div>';
+      if(type === "long") return '<div class="longmat"></div>';
+      if(type === "roller") return '<div class="roller"></div>';
+      return '<div class="block"></div>';
+    }
+
+    function openProduct(index){
+      currentProduct = currentCategory.products[index];
+      document.getElementById('productName').textContent = currentProduct[0];
+      document.getElementById('productIntro').textContent = "適合搭配 OXLiDE 訓練系統，提升控制、穩定、肌力與動作品質。";
+      document.getElementById('productSpecs').innerHTML = currentProduct[1].replaceAll("｜","<br>");
+      document.getElementById('productTag').textContent = currentCategory.name.toUpperCase();
+      document.getElementById('productUse').textContent = currentCategory.desc + "。";
+      document.getElementById('productHero').innerHTML = `${thumb(currentProduct[2]).replace('class="octa"','class="octa" style="width:210px;height:210px"')}<div class="product-dots"><span></span><span></span><span></span></div>`;
+      showScreen('productDetail');
+    }
+
+    function openMenu(){
+      document.getElementById('menuOverlay').classList.add('active');
+    }
+    function closeMenu(e){
+      document.getElementById('menuOverlay').classList.remove('active');
+    }
+
+    const OXLIDE_OFFICIAL_URL = "https://www.oxlide.com/default.aspx";
+    const OXLIDE_SHOP_URL = "https://www.oxlide.com/default.aspx";
+
+    function openOfficialSite(){
+      window.open(OXLIDE_OFFICIAL_URL, "_blank");
+      closeMenu();
+    }
+
+    function openShopSite(){
+      window.open(OXLIDE_SHOP_URL, "_blank");
+      closeMenu();
+    }
+
+    renderCategories();
+    setTimeout(()=>showScreen('home'),3000);
+  </script>
+</body>
+</html>
